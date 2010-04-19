@@ -5,7 +5,7 @@ CleanCSS is a simple pythonic language for CSS inspired by
 `CleverCSS <http://sandbox.pocoo.org/clevercss/>`_ but simpler and with less
 obstrusive features.
 
-This is a PHP port of the `original library <http://github.com/mtorromeo/py-cleancss>`
+This is a PHP port of the `original library <http://github.com/mtorromeo/py-cleancss>`_
 developed for python.
 
 Why
