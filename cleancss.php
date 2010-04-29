@@ -3,7 +3,7 @@ class CleanCSS_ParserException extends Exception {}
 
 class CleanCSS {
 	protected $source;
-	const version = '1.2';
+	const version = '1.3';
 
 	public function __construct($file) {
 		$this->source = file_get_contents($file);
