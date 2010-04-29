@@ -10,18 +10,25 @@ class CleanCSS {
 	}
 
 	protected function flattenSelectors($selectorTree) {
+		$selectors = array();
 		$base = array_shift($selectorTree);
-		if (count($selectorTree)>0) {
-			$tail = $this->flattenSelectors($selectorTree);
-			if ($tail[0] == '&')
-				$tail = substr($tail,1);
-			else
-				$tail = " $tail";
-			foreach($base as $i => $sel) {
-				$base[$i] .= $tail;
+		$tails = null;
+		if (count($selectorTree)>0)
+			$tails = $this->flattenSelectors($selectorTree);
+		foreach($base as $i => $sel) {
+			if (!is_null($tails)) {
+				foreach($tails as $tail) {
+					if ($tail[0] == '&')
+						$tail = substr($tail,1);
+					else
+						$tail = " $tail";
+					$selectors[] = $sel.$tail;
+				}
+			} else {
+				$selectors[] = $sel;
 			}
 		}
-		return implode(",\n", $base);
+		return $selectors;
 	}
 
 	public function toCss() {
@@ -74,7 +81,7 @@ class CleanCSS {
 				if (count($cur_rule_tree) == 0)
 					throw new CleanCSS_ParserException("Selector expected, found definition. Line: $lineno.");
 				if ($selectorsChanged) {
-					$selectors = $this->flattenSelectors($cur_rule_tree);
+					$selectors = implode(",\n", $this->flattenSelectors($cur_rule_tree));
 					$rules[] = array($selectors, array());
 					$selectorsChanged = False;
 				}
