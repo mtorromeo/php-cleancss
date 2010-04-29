@@ -3,28 +3,27 @@ class CleanCSS_ParserException extends Exception {}
 
 class CleanCSS {
 	protected $source;
-	const version = '1.0';
+	const version = '1.2';
 
 	public function __construct($file) {
 		$this->source = file_get_contents($file);
 	}
-	
+
 	protected function flattenSelectors($selectorTree) {
-		$tail = array_pop($selectorTree);
+		$base = array_shift($selectorTree);
 		if (count($selectorTree)>0) {
-			$flattenedBase = $this->flattenSelectors($selectorTree);
-			if ($pp) echo "-- $flattenedBase\n";
-			foreach ($tail as $i => $sel) {
-				if ($sel[0] == '&')
-					$sel = substr($sel,1);
-				elseif ($flattenedBase != '')
-					$sel = ' '.$sel;
-				$tail[$i] = $flattenedBase.$sel;
+			$tail = $this->flattenSelectors($selectorTree);
+			if ($tail[0] == '&')
+				$tail = substr($tail,1);
+			else
+				$tail = " $tail";
+			foreach($base as $i => $sel) {
+				$base[$i] .= $tail;
 			}
 		}
-		return implode(",\n", $tail);
+		return implode(",\n", $base);
 	}
-	
+
 	public function toCss() {
 		$level = 0;
 		$indenter = 0;
@@ -32,21 +31,21 @@ class CleanCSS {
 		$rules = array();
 		$cur_rule_tree = array();
 		$rule_prefixes = array();
-	
+
 		foreach (explode("\n", $this->source) as $lineno => $line) {
 			if (trim($line) == '') continue;
-			
+
 			preg_match('/^\s*/', $line, $matches);
 			$indentation = $matches[0];
 			if ($indenter == 0 && strlen($indentation)>0)
 				$indenter = strlen($indentation);
-			
+
 			if ($indenter>0 && strlen($indentation) % $indenter != 0)
 				throw new CleanCSS_ParserException("Indentation error. Line: $lineno.");
-			
+
 			$newlevel = $indenter > 0 ? strlen($indentation) / $indenter : 0;
 			$line = trim($line);
-			
+
 			if ($newlevel-$level>1)
 				throw new CleanCSS_ParserException("Indentation error. Line: $lineno.");
 
@@ -56,7 +55,7 @@ class CleanCSS {
 			while (count($cur_rule_tree)>$newlevel)
 				array_pop($cur_rule_tree);
 			$level = $newlevel;
-			
+
 			if (preg_match('/^(.+)\s*:$/', $line, $matches)) {
 				$selectors = explode(',', $matches[1]);
 				foreach ($selectors as $i => $sel)
@@ -65,12 +64,12 @@ class CleanCSS {
 				$selectorsChanged = True;
 				continue;
 			}
-			
+
 			if (preg_match('/^([^:>\s]+)->$/', $line, $matches)) {
 				$rule_prefixes[] = $matches[1];
 				continue;
 			}
-			
+
 			if (preg_match('/^([^\s]+)\s*:\s*(.+)$/', $line, $matches)) {
 				if (count($cur_rule_tree) == 0)
 					throw new CleanCSS_ParserException("Selector expected, found definition. Line: $lineno.");
@@ -89,7 +88,7 @@ class CleanCSS {
 
 			throw new CleanCSS_ParserException("Unexpected item. Line: $lineno.");
 		}
-		
+
 		$result = array();
 		foreach ($rules as $rule)
 			$result[] = $rule[0] . " {\n\t" . implode("\n\t", $rule[1]) . "\n}\n";
@@ -99,6 +98,11 @@ class CleanCSS {
 	public static function convert($file) {
 		$ccss = new CleanCSS($file);
 		return $ccss->toCss();
+	}
+
+	public static function output($file) {
+		header('Content-Type: text/css');
+		echo CleanCSS::convert($file);
 	}
 
 }

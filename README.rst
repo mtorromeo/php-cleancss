@@ -35,10 +35,10 @@ A small example below.  Note the indentation based syntax and how you can nest r
 		li:
 			padding: 0.4em
 			margin: 0.8em 0 0.8em
-			
+
 			a:
 				color: black
-				
+
 				&:hover:
 					color: red
 
@@ -96,11 +96,18 @@ output of the above file::
 Library usage
 -------------
 Simply call CleanCSS::convert($FILENAME); after including the library file.
+You probably should specify a text/css content-type.
 
 Example::
 
 	require_once('cleancss.php');
-	echo CleanCSS::convert('file.css');
+	header('Content-Type: text/css');
+	echo CleanCSS::convert('file.ccss');
+
+Which is equivalent to::
+
+	require_once('cleancss.php');
+	CleanCSS::output('file.ccss');
 
 LICENSE
 -------
