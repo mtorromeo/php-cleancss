@@ -2,7 +2,7 @@
 require_once('simpletest/autorun.php');
 require_once('../cleancss.php');
 
-class TestOfLogging extends UnitTestCase {
+class CleanCSSTestCase extends UnitTestCase {
 	function testConvert() {
 		$this->assertEqual( CleanCSS::convertString(
 "#header, #footer:
