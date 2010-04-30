@@ -3,10 +3,13 @@ class CleanCSS_ParserException extends Exception {}
 
 class CleanCSS {
 	protected $source;
-	const version = '1.3';
+	const version = '1.4';
 
-	public function __construct($file) {
-		$this->source = file_get_contents($file);
+	public function __construct($file, $source=null) {
+		if (is_null($source))
+			$this->source = file_get_contents($file);
+		else
+			$this->source = $source;
 	}
 
 	protected function flattenSelectors($selectorTree) {
@@ -104,6 +107,11 @@ class CleanCSS {
 
 	public static function convert($file) {
 		$ccss = new CleanCSS($file);
+		return $ccss->toCss();
+	}
+
+	public static function convertString($source) {
+		$ccss = new CleanCSS(null, $source);
 		return $ccss->toCss();
 	}
 
