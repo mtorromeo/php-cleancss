@@ -3,6 +3,7 @@ class CleanCSS_ParserException extends Exception {}
 
 class CleanCSS {
 	protected $source;
+	protected $callbacks = array();
 	const version = '1.4';
 
 	public function __construct($file, $source=null) {
@@ -94,7 +95,18 @@ class CleanCSS {
 					$prefixes = implode('-', $rule_prefixes) . '-';
 				else
 					$prefixes = '';
-				$rules[count($rules)-1][1][] = $prefixes . $matches[1] . ': ' . $matches[2] . ';';
+
+				if (count($this->callbacks)) {
+					$properties = array();
+					foreach($this->callbacks as $callback)
+						$properties = array_merge($properties, call_user_func($callback, $matches[1], $matches[2]));
+				} else {
+					$properties = array(array($matches[1], $matches[2]));
+				}
+
+				foreach($properties as $property)
+					$rules[count($rules)-1][1][] = $prefixes . trim($property[0]) . ': ' . trim($property[1]) . ';';
+
 				continue;
 			}
 
@@ -107,19 +119,26 @@ class CleanCSS {
 		return implode('', $result);
 	}
 
-	public static function convert($file) {
+	public function registerPropertyCallback($callback) {
+		if (is_callable($callback))
+			$this->callbacks[] = $callback;
+	}
+
+	public static function convert($file, $propertyCallback=null) {
 		$ccss = new CleanCSS($file);
+		$ccss->registerPropertyCallback($propertyCallback);
 		return $ccss->toCss();
 	}
 
-	public static function convertString($source) {
+	public static function convertString($source, $propertyCallback=null) {
 		$ccss = new CleanCSS(null, $source);
+		$ccss->registerPropertyCallback($propertyCallback);
 		return $ccss->toCss();
 	}
 
-	public static function output($file) {
+	public static function output($file, $propertyCallback=null) {
 		header('Content-Type: text/css');
-		echo CleanCSS::convert($file);
+		echo CleanCSS::convert($file, $propertyCallback);
 	}
 
 }
