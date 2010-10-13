@@ -44,7 +44,7 @@ class CleanCSS {
 		$rule_prefixes = array();
 
 		foreach (explode("\n", $this->source) as $lineno => $line) {
-			$line = preg_replace('|//.*$|', '', $line);
+			$line = preg_replace('#([^:]|^)//.*$#', '', $line);
 
 			if (trim($line) == '') continue;
 
