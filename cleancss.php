@@ -122,6 +122,8 @@ class CleanCSS {
 	public function registerPropertyCallback($callback) {
 		if (is_callable($callback))
 			$this->callbacks[] = $callback;
+		else
+			throw new Exception("Not a callable");
 	}
 
 	public static function convert($file, $propertyCallback=null) {
